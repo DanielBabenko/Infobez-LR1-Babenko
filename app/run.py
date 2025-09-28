@@ -1,5 +1,8 @@
 # run.py
 import os
+
+from flask_sqlalchemy import SQLAlchemy
+
 from application import create_app, db
 
 app = create_app()

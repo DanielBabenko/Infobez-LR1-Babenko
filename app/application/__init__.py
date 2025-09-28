@@ -16,4 +16,4 @@ def create_app(config_class=Config):
     app.register_blueprint(tasks.bp)
     app.register_blueprint(auth.bp)
 
-    return app, db
+    return app
