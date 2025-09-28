@@ -30,19 +30,15 @@ def make_public_task(task):
                 new_task[field] = value
     return new_task
 
-# --- Аутентификация с JWT ---
-
-###################################################
-
 @app.route('/tasks', methods=['GET'])
 @token_required
 def get_tasks(current_user):
-    tasks = Task.query.all()  # Получаем все задачи из БД
+    tasks = Task.query.all()
     return jsonify({'tasks': list(map(make_public_task, tasks))})
 
 @app.route('/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
-    task = Task.query.get(task_id) #Task.query.filter_by(id=task_id).first()
+    task = Task.query.get(task_id)
     if task is None:
         abort(404)
     return jsonify({'task': make_public_task(task)})
@@ -108,33 +104,6 @@ def login():
         return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
-
-# Обновить токен
-@app.route('/auth/refresh', methods=['POST'])
-def refresh():
-    if not request.json or not 'refresh_token' in request.json:
-        return jsonify({'message': 'Refresh token is missing!'}), 400
-
-    refresh_token = request.json['refresh_token']
-
-    try:
-        data = jwt.decode(refresh_token, app.config['SECRET_KEY'], algorithms=['HS256'])
-        if data['type'] != 'refresh':
-            return jsonify({'message': 'Invalid token type!'}), 400
-        user = User.query.get(data['user_id'])
-        if not user:
-            return jsonify({'message': 'Invalid user!'}), 400
-
-        access_token = generate_access_token(user)
-        return jsonify({'access_token': access_token}), 200
-
-    except jwt.ExpiredSignatureError:
-        return jsonify({'message': 'Refresh token has expired!'}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({'message': 'Refresh token is invalid!'}), 401
-    except Exception as e:
-        print(f"Refresh token verification error: {e}")
-        return jsonify({'message': 'Something went wrong with refresh token verification!'}), 500
 
 # Регистрация
 @app.route('/auth/register', methods=['POST'])

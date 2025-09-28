@@ -53,3 +53,30 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+# Обновить токен
+@app.route('/auth/refresh', methods=['POST'])
+def refresh():
+    if not request.json or not 'refresh_token' in request.json:
+        return jsonify({'message': 'Refresh token is missing!'}), 400
+
+    refresh_token = request.json['refresh_token']
+
+    try:
+        data = jwt.decode(refresh_token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        if data['type'] != 'refresh':
+            return jsonify({'message': 'Invalid token type!'}), 400
+        user = User.query.get(data['user_id'])
+        if not user:
+            return jsonify({'message': 'Invalid user!'}), 400
+
+        access_token = generate_access_token(user)
+        return jsonify({'access_token': access_token}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Refresh token has expired!'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Refresh token is invalid!'}), 401
+    except Exception as e:
+        print(f"Refresh token verification error: {e}")
+        return jsonify({'message': 'Something went wrong with refresh token verification!'}), 500
