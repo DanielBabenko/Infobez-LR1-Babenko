@@ -183,7 +183,7 @@ def login():
     username = request.json['username']
     password = request.json['password']
 
-    user = User.query.filter_by(username=username).first()  # Ищем пользователя в БД
+    user = User.query.filter_by(username=username).first()
 
     if user and user.check_password(password):
         access_token = generate_access_token(user)
@@ -228,7 +228,7 @@ def register():
     username = request.json['username']
     password = request.json['password']
 
-    if User.query.filter_by(username=username).first(): # Проверяем, существует ли пользователь
+    if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists'}), 400
 
     user = User(username=username)
