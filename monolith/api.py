@@ -2,7 +2,6 @@
 import pytz
 from cffi.backend_ctypes import unicode
 from flask import Flask, jsonify, abort, make_response, request, url_for
-from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import bleach
@@ -14,15 +13,15 @@ from functools import wraps
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'YuraRuina'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15) # Access token lifetime
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30) # Refresh token lifetime
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')  # Используем SQLite для простоты
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Отключаем warnings
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- Модели базы данных ---
+# --- Модели БД ---
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,16 +56,16 @@ def make_public_task(task):
     new_task = {}
     for field in task.__dict__:
         if field == 'id':
-            new_task['uri'] = url_for('get_task', task_id=task.id, _external=True)  # task.id
-        elif not field.startswith('_'): # Игнорируем SQLAlchemy внутренние атрибуты
+            new_task['uri'] = url_for('get_task', task_id=task.id, _external=True)
+        elif not field.startswith('_'):
             value = getattr(task, field)
-            if isinstance(value, str): # Санируем только строковые значения
-                new_task[field] = bleach.clean(value)  # Sanitize the value
+            if isinstance(value, str):
+                new_task[field] = bleach.clean(value)
             else:
                 new_task[field] = value
     return new_task
 
-# --- JWT Authentication ---
+# --- Аутентификация с JWT ---
 
 def generate_access_token(user):
     payload = {
@@ -118,20 +117,20 @@ def token_required(f):
 
 ###################################################
 
-@app.route('/todo/api/v1.0/tasks', methods=['GET'])
+@app.route('/tasks', methods=['GET'])
 @token_required
 def get_tasks(current_user):
     tasks = Task.query.all()  # Получаем все задачи из БД
     return jsonify({'tasks': list(map(make_public_task, tasks))})
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['GET'])
+@app.route('/tasks/<int:task_id>', methods=['GET'])
 def get_task(task_id):
     task = Task.query.get(task_id) #Task.query.filter_by(id=task_id).first()
     if task is None:
         abort(404)
     return jsonify({'task': make_public_task(task)})
 
-@app.route('/todo/api/v1.0/tasks', methods=['POST'])
+@app.route('/tasks', methods=['POST'])
 @token_required
 def create_task(current_user):
     if not request.json or not 'title' in request.json:
@@ -142,7 +141,7 @@ def create_task(current_user):
     db.session.commit()
     return jsonify({'task': make_public_task(task)}), 201
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['PUT'])
+@app.route('/tasks/<int:task_id>', methods=['PUT'])
 @token_required
 def update_task(current_user, task_id):
     task = Task.query.get(task_id)
@@ -165,7 +164,7 @@ def update_task(current_user, task_id):
     db.session.commit()
     return jsonify({'task': make_public_task(task)})
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['DELETE'])
+@app.route('/tasks/<int:task_id>', methods=['DELETE'])
 @token_required
 def delete_task(current_user, task_id):
     task = Task.query.get(task_id)
@@ -175,7 +174,7 @@ def delete_task(current_user, task_id):
     db.session.commit()
     return jsonify({'result': True})
 
-# Authentication
+# Аутентификация
 @app.route('/auth/login', methods=['POST'])
 def login():
     if not request.json or not 'username' in request.json or not 'password' in request.json:
@@ -193,7 +192,7 @@ def login():
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
 
-# Refresh token route
+# Обновить токен
 @app.route('/auth/refresh', methods=['POST'])
 def refresh():
     if not request.json or not 'refresh_token' in request.json:
@@ -220,7 +219,7 @@ def refresh():
         print(f"Refresh token verification error: {e}")
         return jsonify({'message': 'Something went wrong with refresh token verification!'}), 500
 
-# Registration
+# Регистрация
 @app.route('/auth/register', methods=['POST'])
 def register():
     if not request.json or not 'username' in request.json or not 'password' in request.json:
@@ -240,6 +239,6 @@ def register():
 
 #
 if __name__ == '__main__':
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
