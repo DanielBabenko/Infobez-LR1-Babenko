@@ -5,7 +5,4 @@ PyJWT
 bleach
 safety
 pytz
-cffi.backend_ctype
-os
 datetime
-functools
