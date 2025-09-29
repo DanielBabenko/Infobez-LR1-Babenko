@@ -1,4 +1,7 @@
 # #!flask/bin/python
+
+# Изначально API был выполнен как монолит, но всё же код, распределённый по модулям, куда чище
+
 # import pytz
 # from cffi.backend_ctypes import unicode
 # from flask import Flask, jsonify, abort, make_response, request, url_for
