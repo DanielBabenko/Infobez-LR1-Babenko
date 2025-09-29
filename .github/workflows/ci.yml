@@ -24,7 +24,7 @@ jobs:
       - name: Bandit Security Scan
         run: |
           pip install bandit
-          bandit -r . -f text
+          bandit -r . -f txt
 
       - name: Snyk Security Scan
         uses: snyk/actions/python@master
