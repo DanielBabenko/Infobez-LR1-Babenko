@@ -2,10 +2,11 @@ from flask import Flask
 import datetime
 import os
 from models import db
+import secrets
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'YuraRuina'
+app.config['SECRET_KEY'] = secrets.token_urlsafe(32)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
 
