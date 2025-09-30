@@ -55,6 +55,10 @@ Refresh-токен же существует в системе более дли
 
 <h2>CI/CD pipeline с security-сканерами</h2>
 
+
+
 Отчёт Safety - уязвимости не найдены.
+
+<img width="886" height="689" alt="image" src="https://github.com/user-attachments/assets/9ab82722-8d56-464c-acba-64fd1b978552" />
 
 Отчёт Bandit - уязвимости не найдены.
