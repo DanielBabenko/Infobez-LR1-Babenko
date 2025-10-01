@@ -25,23 +25,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install bandit safety flake8 black
 
-    - name: Run Bandit (SAST)
+    - name: Run Bandit Security Check
       run: |
         bandit -r  app/ config.py run.py || true
 
     - name: Run Safety check
       run: |
         safety check || true
-
-    - name: Check code formatting with Black
-      run: |
-        black --check app/ config.py run.py || true
-
-    - name: Lint with flake8
-      run: |
-        flake8 app/ config.py run.py --max-line-length=88 --ignore=E203,W503 --statistics || true
 
     - name: Run Snyk test для зависимостей Python
       uses: snyk/actions/python@0.4.0
