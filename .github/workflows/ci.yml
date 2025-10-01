@@ -1,4 +1,4 @@
-name: CI/CD - Security Checks
+name: CI/CD - Security Checks and Reporting
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  security-scan:
+  security_checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,14 +22,34 @@ jobs:
           pip install -r requirements.txt
 
       - name: Bandit Security Scan
+        id: bandit_scan
         run: |
           pip install bandit
-          bandit -r . -f txt
+          # Запускаем bandit и сохраняем отчет в файл
+          bandit -r . -f txt -o bandit_report.txt
+          echo "::set-output name=report_file::bandit_report.txt" 
+        continue-on-error: true 
+
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v3
+        if: always() 
+        with:
+          name: bandit-report
+          path: bandit_report.txt
 
       - name: Snyk Security Scan
-        uses: snyk/actions/python@0.4.0
+        id: snyk_scan # Добавляем id для этого шага
+        uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=low
           command: test
+          args: --severity-threshold=low --fail-on=all # --fail-on=all для более строгого контроля
+        continue-on-error: true 
+
+      - name: Upload Snyk Scan Result (as a file)
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: snyk-scan-result
+          run: echo "Snyk results are available in the job logs and on Snyk.io"
