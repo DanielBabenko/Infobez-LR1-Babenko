@@ -171,6 +171,6 @@ def check_password(self, password):
 
 Отчёт Safety - уязвимости не найдены.
 
-<img width="886" height="689" alt="image" src="https://github.com/user-apreachments/assets/9ab82722-8d56-464c-acba-64fd1b978552"/>
+<img width="1346" height="765" alt="image" src="https://github.com/user-attachments/assets/10af05d6-38fa-4b98-861b-83a867ca4b43" />
 
 Отчёт Bandit - уязвимости не найдены.
