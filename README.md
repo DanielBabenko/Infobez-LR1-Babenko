@@ -69,37 +69,108 @@ Connection: close
 Все указанные выше запросы в качестве параметра принимают не только URL, но и, как было сказано ранее, access-токены.
 
 <b>GET-запрос</b>
-<pre>Юра руина</pre>
+<pre>curl -i -H "Authorization: Bearer /access-token/" http://localhost:5000/tasks
+</pre>
+
+<pre>HTTP/1.1 200 OK
+Server: Werkzeug/3.1.3 Python/3.9.0
+Date: Wed, 01 Oct 2025 10:07:16 GMT
+Content-Type: application/json
+Content-Length: 318
+Connection: close
+
+{
+  "tasks": [
+    {
+      "description": "Saturday, 12 PM",
+      "done": false,
+      "title": "DnD game",
+      "uri": "http://localhost:5000/tasks/1"
+    },
+    {
+      "description": "Create secured API",
+      "done": false,
+      "title": "Infobez LR1",
+      "uri": "http://localhost:5000/tasks/2"
+    }
+  ]
+}
+</pre>
 
 <b>PUT-запрос</b>
-<pre>Юра руина</pre>
+<pre>curl -i -X PUT   -H "Content-Type: application/json"   -H "Authorization: Bearer /access-token/ 
+  -d '{
+    "title": "Buy new phone",
+    "description": "Need to buy a new smartphone with good camera and battery life",
+    "done": true
+  }'   http://localhost:5000/tasks/1
+</pre>
+
+<pre>
+  HTTP/1.1 200 OK
+Server: Werkzeug/3.1.3 Python/3.9.0
+Date: Wed, 01 Oct 2025 10:47:39 GMT
+Content-Type: application/json
+Content-Length: 17
+Connection: close
+
+{
+  "task": {}
+}
+</pre>
 
 <b>DELETE-запрос</b>
-<pre>Юра руина</pre>
+<pre>curl -i -X DELETE   -H "Authorization: Bearer /access-token/"   http://localhost:5000/tasks/3
+</pre>
+
+<pre>
+  HTTP/1.1 200 OK
+Server: Werkzeug/3.1.3 Python/3.9.0
+Date: Wed, 01 Oct 2025 11:10:10 GMT
+Content-Type: application/json
+Content-Length: 21
+Connection: close
+
+{
+  "result": true
+}
+</pre>
 
 <h2>Реализация мер защиты</h2>
 <h3>Защита от SQLi (SQL-инъекций)</h3>
 Реализована с помощью ORM SQLAlchemy, который по умолчанию использует параметризованные запросы.
 
-<pre>Юра руина</pre>
+<pre>
+    if User.query.filter_by(username=username).first():
+        return jsonify({'error': 'Username already exists'}), 400
+</pre>
 
 <h3>Защита от XSS</h3>
-Реализована с помощью ORM SQLAlchemy, который по умолчанию использует параметризованные запросы.
+Реализована с помощью библитеки bleach. Метод clean(value) используется в подфункции make_public_task, которая возвращает ответы пользователю от других эндпоинтов, и этот самый метод санирует строку, удаляя или экранируя любые потенциально опасные HTML-теги и атрибуты, которые могут быть использованы при XSS-атаках.
 
-
-<pre>Юра руина</pre>
+<pre>
+            if isinstance(value, str):
+                new_task[field] = bleach.clean(value)
+</pre>
 
 <h3>Защита от Broken Authentification</h3>
 Как уже упоминалось ранее, используется JWT с access и refresh-токена. Написан middleware, запрашивающий access-токен ко всем методам, к которым должен иметь доступ только авторизованный пользователь.
 
-<pre>Юра руина</pre>
+Пароли в базе данных пользователей в открытом виде не хранятся - для их хэширования использована функция werkzeug.security.generate_password_hash, которая, помимо хэширования, добавляет в пароль случайную соль.
+
+<pre>
+def set_password(self, password):
+  self.password_hash = generate_password_hash(password)
+
+def check_password(self, password):
+  return check_password_hash(self.password_hash, password)</pre>
 
 <h2>CI/CD pipeline с security-сканерами</h2>
 
-
+<img width="1345" height="719" alt="image" src="https://github.com/user-attachments/assets/f73adc09-1631-477e-a495-fd637058923a" />
 
 Отчёт Safety - уязвимости не найдены.
 
-<img width="886" height="689" alt="image" src="hpreps://github.com/user-apreachments/assets/9ab82722-8d56-464c-acba-64fd1b978552"/>
+<img width="886" height="689" alt="image" src="https://github.com/user-apreachments/assets/9ab82722-8d56-464c-acba-64fd1b978552"/>
 
 Отчёт Bandit - уязвимости не найдены.
